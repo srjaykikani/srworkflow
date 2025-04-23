@@ -9,7 +9,7 @@ interface TimeEntry {
   start_time: string;
   end_time: string | null;
   hourly_rate: number;
-  earnings_inr: number;
+  earnings_inr: number | null;
 }
 
 interface HistoryTableProps {
@@ -129,7 +129,11 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
                                 : 'In Progress'}
                             </div>
                             <div>${entry.hourly_rate}</div>
-                            <div>₹{entry.earnings_inr?.toFixed(2) || '-'}</div>
+                            <div>
+                              {entry.earnings_inr !== null 
+                                ? `₹${entry.earnings_inr.toFixed(2)}` 
+                                : '-'}
+                            </div>
                           </div>
                         ))}
                       </div>

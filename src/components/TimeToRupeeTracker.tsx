@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, StopCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,11 +8,11 @@ import HistoryTable from './HistoryTable';
 const TimeToRupeeTracker: React.FC = () => {
   const [hourlyRate, setHourlyRate] = useState<number>(5);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
-  const [timerStatus, setTimerStatus<'idle' | 'running' | 'paused'>>('idle');
-  const [startTime, setStartTime<number | null>(null);
-  const [pausedTime, setPausedTime<number>(0);
-  const [currentEntryId, setCurrentEntryId<string | null>(null);
-  const [entries, setEntries<any[]>([]);
+  const [timerStatus, setTimerStatus] = useState<'idle' | 'running' | 'paused'>('idle');
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [pausedTime, setPausedTime] = useState<number>(0);
+  const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
+  const [entries, setEntries] = useState<any[]>([]);
 
   const USD_TO_INR_RATE = 85;
 
