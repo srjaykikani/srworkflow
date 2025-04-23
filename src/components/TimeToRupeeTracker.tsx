@@ -1,27 +1,18 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, StopCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import ThemeToggle from './ThemeToggle';
+import HistoryTable from './HistoryTable';
 
-/**
- * TimeToRupeeTracker Component
- * A stopwatch that tracks time and calculates earnings in real-time
- * based on an hourly rate (USD) and converts to INR
- */
 const TimeToRupeeTracker: React.FC = () => {
-  // State for hourly rate in USD
-  const [hourlyRate, setHourlyRate] = useState<number>(20);
-  
-  // State for elapsed time in seconds
+  const [hourlyRate, setHourlyRate] = useState<number>(5);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
-  
-  // Timer state: 'idle', 'running', 'paused'
   const [timerStatus, setTimerStatus] = useState<'idle' | 'running' | 'paused'>('idle');
-  
-  // Reference to track the timer interval
   const [startTime, setStartTime] = useState<number | null>(null);
   const [pausedTime, setPausedTime] = useState<number>(0);
+  const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
+  const [entries, setEntries] = useState<any[]>([]);
 
-  // USD to INR conversion rate
   const USD_TO_INR_RATE = 85;
 
   // Format the elapsed time to HH:MM:SS
@@ -44,8 +35,25 @@ const TimeToRupeeTracker: React.FC = () => {
     const hours = elapsedTime / 3600;
     return (hours * hourlyRateINR).toFixed(2);
   }, [elapsedTime, hourlyRate]);
-  
-  // Handle timer tick - update elapsed time
+
+  useEffect(() => {
+    fetchEntries();
+  }, []);
+
+  const fetchEntries = async () => {
+    const { data, error } = await supabase
+      .from('time_entries')
+      .select('*')
+      .order('start_time', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching entries:', error);
+      return;
+    }
+    
+    setEntries(data || []);
+  };
+
   useEffect(() => {
     let intervalId: number | undefined;
     
@@ -56,7 +64,7 @@ const TimeToRupeeTracker: React.FC = () => {
           const newElapsedSeconds = pausedTime + (currentTime - startTime) / 1000;
           setElapsedTime(newElapsedSeconds);
         }
-      }, 100); // Update more frequently for smoother display
+      }, 100);
     }
     
     return () => {
@@ -66,33 +74,64 @@ const TimeToRupeeTracker: React.FC = () => {
     };
   }, [timerStatus, startTime, pausedTime]);
 
-  // Start the timer
-  const handleStart = () => {
+  const handleStart = async () => {
     setTimerStatus('running');
-    setStartTime(Date.now());
+    const now = Date.now();
+    setStartTime(now);
+
+    const { data, error } = await supabase
+      .from('time_entries')
+      .insert({
+        start_time: new Date(now).toISOString(),
+        hourly_rate: hourlyRate,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating entry:', error);
+      return;
+    }
+
+    setCurrentEntryId(data.id);
   };
   
-  // Pause the timer
-  const handlePause = () => {
+  const handlePause = async () => {
     if (timerStatus === 'running') {
       setTimerStatus('paused');
       setPausedTime(elapsedTime);
       setStartTime(null);
     } else if (timerStatus === 'paused') {
-      // Resume
       setTimerStatus('running');
       setStartTime(Date.now());
     }
   };
   
-  // Reset the timer
-  const handleReset = () => {
+  const handleReset = async () => {
+    if (currentEntryId) {
+      const { error } = await supabase
+        .from('time_entries')
+        .update({
+          end_time: new Date().toISOString(),
+          earnings_inr: parseFloat(earningsINR),
+        })
+        .eq('id', currentEntryId);
+
+      if (error) {
+        console.error('Error updating entry:', error);
+        return;
+      }
+
+      await fetchEntries();
+    }
+
     setTimerStatus('idle');
     setElapsedTime(0);
     setPausedTime(0);
     setStartTime(null);
+    setCurrentEntryId(null);
   };
-  
+
   // Handle hourly rate input change
   const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
@@ -104,17 +143,13 @@ const TimeToRupeeTracker: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-md mx-auto">
-      <div className="w-full bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
-        
-        {/* Header */}
-        <div className="py-6 px-8 bg-white bg-opacity-70 shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-800 text-center font-['Poppins']">
+    <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
+      <div className="w-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
+        <div className="flex justify-between items-center py-6 px-8 bg-white bg-opacity-70 dark:bg-gray-800 dark:bg-opacity-70 shadow-sm">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 text-center font-['Poppins']">
             Time to Rupee Tracker
           </h1>
-          <p className="text-center text-gray-600 text-sm mt-2 font-['Poppins']">
-            Track your time and see your earnings in real-time
-          </p>
+          <ThemeToggle />
         </div>
         
         {/* Timer Display */}
@@ -198,9 +233,10 @@ const TimeToRupeeTracker: React.FC = () => {
         </div>
       </div>
       
-      {/* Motivational message */}
+      <HistoryTable entries={entries} />
+      
       <div className="mt-6 text-center">
-        <p className="text-gray-600 font-medium italic font-['Poppins']">
+        <p className="text-gray-600 dark:text-gray-300 font-medium italic font-['Poppins']">
           "Time is your most valuable asset. Track it wisely!"
         </p>
       </div>
