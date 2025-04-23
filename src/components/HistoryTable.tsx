@@ -4,6 +4,7 @@ import { format, isSameDay, parseISO } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/sonner";
+import { Calendar, ArrowUp, ArrowDown } from "lucide-react";
 
 interface TimeEntry {
   id: string;
@@ -98,36 +99,50 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
   };
 
   return (
-    <div className="w-full mt-8 font-['Inter']">
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">History</h2>
+    <div className="w-full mt-10 font-['Inter'] animate-fade-in">
+      <div className="mb-5 flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-foreground flex items-center">
+          <Calendar className="mr-2 h-5 w-5 text-primary" />
+          History
+        </h2>
         <div className="flex gap-2">
           <button
             onClick={handleSortOrderChange}
-            className="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            className="px-3 py-1.5 rounded-md bg-secondary dark:bg-muted hover:bg-secondary/80 dark:hover:bg-muted/80 transition-colors flex items-center gap-1.5 text-sm font-medium"
             title={`Sort ${sortOrder === 'asc' ? 'descending' : 'ascending'}`}
           >
-            {sortOrder === 'asc' ? '↑' : '↓'}
+            {sortOrder === 'asc' ? (
+              <>Oldest first <ArrowUp className="h-3.5 w-3.5" /></>
+            ) : (
+              <>Newest first <ArrowDown className="h-3.5 w-3.5" /></>
+            )}
           </button>
         </div>
       </div>
       
-      <div className="border rounded-lg dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800 shadow-sm">
+      <div className="border rounded-lg dark:border-muted overflow-hidden bg-card dark:bg-card shadow-sm">
         {isLoading ? (
           <div className="flex justify-center items-center h-20">
-            <p className="text-gray-500 dark:text-gray-400">Loading history...</p>
+            <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm rounded-md text-primary dark:text-primary animate-pulse">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Loading history...
+            </div>
           </div>
         ) : entries.length === 0 ? (
           <div className="flex justify-center items-center h-40">
             <div className="text-center">
-              <p className="text-gray-500 dark:text-gray-400 mb-2">No time entries yet</p>
-              <p className="text-sm text-gray-400 dark:text-gray-500">Start the timer to begin tracking</p>
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-40" />
+              <p className="text-muted-foreground mb-2">No time entries yet</p>
+              <p className="text-sm text-muted-foreground">Start the timer to begin tracking</p>
             </div>
           </div>
         ) : (
           <ScrollArea className="h-[600px] rounded-md">
             <Table>
-              <TableHeader className="sticky top-0 bg-gray-50 dark:bg-gray-800">
+              <TableHeader className="sticky top-0 bg-secondary/70 dark:bg-muted/80 backdrop-blur-sm">
                 <TableRow>
                   <TableHead className="w-[180px]">Date</TableHead>
                   <TableHead>Session Time</TableHead>
@@ -143,11 +158,11 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
                   
                   return (
                     <TableRow key={date} className="group">
-                      <TableCell className="font-medium border-b dark:border-gray-700">
+                      <TableCell className="font-medium border-b dark:border-muted">
                         {formatDate(date)}
                       </TableCell>
                       <TableCell colSpan={4} className="p-0">
-                        <div className="border-b dark:border-gray-700 px-4 py-2 bg-gray-50/50 dark:bg-gray-800/50">
+                        <div className="border-b dark:border-muted px-4 py-2 bg-secondary/20 dark:bg-muted/20">
                           <span className="font-medium">
                             Total: {formatDuration(duration)} | ₹{earnings.toFixed(2)}
                           </span>
@@ -156,10 +171,11 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
                           {dayEntries.map((entry) => (
                             <div
                               key={entry.id}
-                              className="grid grid-cols-4 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                              className="grid grid-cols-4 px-4 py-3 hover:bg-secondary/10 dark:hover:bg-muted/10 transition-colors"
                             >
                               <div>
-                                {entry.start_time ? formatTime(entry.start_time) : '??:??:??'} - {entry.end_time ? formatTime(entry.end_time) : 'In Progress'}
+                                {entry.start_time ? formatTime(entry.start_time) : '??:??:??'} - {entry.end_time ? formatTime(entry.end_time) : 
+                                <span className="text-primary dark:text-primary animate-pulse">In Progress</span>}
                               </div>
                               <div>
                                 {entry.end_time && entry.start_time
@@ -169,8 +185,8 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
                                     )
                                   : 'In Progress'}
                               </div>
-                              <div>${entry.hourly_rate}</div>
-                              <div>
+                              <div>${entry.hourly_rate.toFixed(2)}</div>
+                              <div className="font-medium">
                                 {entry.earnings_inr !== null 
                                   ? `₹${entry.earnings_inr.toFixed(2)}` 
                                   : '-'}
