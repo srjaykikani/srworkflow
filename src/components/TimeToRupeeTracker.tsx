@@ -4,6 +4,7 @@ import { Play, Pause, StopCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ThemeToggle from './ThemeToggle';
 import HistoryTable from './HistoryTable';
+import { toast } from "@/components/ui/sonner";
 
 const TimeToRupeeTracker: React.FC = () => {
   const [hourlyRate, setHourlyRate] = useState<number>(5);
@@ -42,17 +43,25 @@ const TimeToRupeeTracker: React.FC = () => {
   }, []);
 
   const fetchEntries = async () => {
-    const { data, error } = await supabase
-      .from('time_entries')
-      .select('*')
-      .order('start_time', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching entries:', error);
-      return;
+    try {
+      const { data, error } = await supabase
+        .from('time_entries')
+        .select('*')
+        .order('start_time', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching entries:', error);
+        toast.error("Failed to load your time entries", {
+          description: "Please check your connection and try again"
+        });
+        return;
+      }
+      
+      setEntries(data || []);
+    } catch (err) {
+      console.error('Error in fetchEntries:', err);
+      toast.error("Something went wrong while loading entries");
     }
-    
-    setEntries(data || []);
   };
 
   useEffect(() => {
@@ -76,61 +85,92 @@ const TimeToRupeeTracker: React.FC = () => {
   }, [timerStatus, startTime, pausedTime]);
 
   const handleStart = async () => {
-    setTimerStatus('running');
-    const now = Date.now();
-    setStartTime(now);
+    try {
+      setTimerStatus('running');
+      const now = Date.now();
+      setStartTime(now);
 
-    const { data, error } = await supabase
-      .from('time_entries')
-      .insert({
-        start_time: new Date(now).toISOString(),
-        hourly_rate: hourlyRate,
-      })
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('time_entries')
+        .insert({
+          start_time: new Date(now).toISOString(),
+          hourly_rate: hourlyRate,
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating entry:', error);
-      return;
+      if (error) {
+        console.error('Error creating entry:', error);
+        toast.error("Failed to start timer", {
+          description: "Your session couldn't be saved. Please try again."
+        });
+        return;
+      }
+
+      setCurrentEntryId(data.id);
+      toast.success("Timer started", {
+        description: `Tracking at $${hourlyRate}/hour`
+      });
+    } catch (err) {
+      console.error('Error in handleStart:', err);
+      toast.error("Something went wrong when starting the timer");
     }
-
-    setCurrentEntryId(data.id);
   };
   
   const handlePause = async () => {
-    if (timerStatus === 'running') {
-      setTimerStatus('paused');
-      setPausedTime(elapsedTime);
-      setStartTime(null);
-    } else if (timerStatus === 'paused') {
-      setTimerStatus('running');
-      setStartTime(Date.now());
+    try {
+      if (timerStatus === 'running') {
+        setTimerStatus('paused');
+        setPausedTime(elapsedTime);
+        setStartTime(null);
+        toast.info("Timer paused", {
+          description: `Current time: ${formattedTime}`
+        });
+      } else if (timerStatus === 'paused') {
+        setTimerStatus('running');
+        setStartTime(Date.now());
+        toast.success("Timer resumed");
+      }
+    } catch (err) {
+      console.error('Error in handlePause:', err);
+      toast.error("Failed to update timer status");
     }
   };
   
   const handleReset = async () => {
-    if (currentEntryId) {
-      const { error } = await supabase
-        .from('time_entries')
-        .update({
-          end_time: new Date().toISOString(),
-          earnings_inr: parseFloat(earningsINR),
-        })
-        .eq('id', currentEntryId);
+    try {
+      if (currentEntryId) {
+        const { error } = await supabase
+          .from('time_entries')
+          .update({
+            end_time: new Date().toISOString(),
+            earnings_inr: parseFloat(earningsINR),
+          })
+          .eq('id', currentEntryId);
 
-      if (error) {
-        console.error('Error updating entry:', error);
-        return;
+        if (error) {
+          console.error('Error updating entry:', error);
+          toast.error("Failed to save your session", {
+            description: "Please try again or check your connection"
+          });
+          return;
+        }
+
+        toast.success("Session completed", {
+          description: `Earned ₹${earningsINR} in ${formattedTime}`
+        });
+        await fetchEntries();
       }
 
-      await fetchEntries();
+      setTimerStatus('idle');
+      setElapsedTime(0);
+      setPausedTime(0);
+      setStartTime(null);
+      setCurrentEntryId(null);
+    } catch (err) {
+      console.error('Error in handleReset:', err);
+      toast.error("Something went wrong when stopping the timer");
     }
-
-    setTimerStatus('idle');
-    setElapsedTime(0);
-    setPausedTime(0);
-    setStartTime(null);
-    setCurrentEntryId(null);
   };
 
   // Handle hourly rate input change
