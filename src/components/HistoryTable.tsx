@@ -1,10 +1,11 @@
-
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { format, isSameDay, parseISO } from "date-fns";
+import { format, isSameDay, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/sonner";
 import { Calendar, ArrowUp, ArrowDown } from "lucide-react";
+import { TimeEntryFilters } from "./TimeEntryFilters";
+import type { TimeEntryFilters as Filters } from "./TimeEntryFilters";
 
 interface TimeEntry {
   id: string;
@@ -22,11 +23,41 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
   const [sortBy, setSortBy] = useState<'date' | 'earnings'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [filters, setFilters] = useState<Filters>({
+    dateFrom: null,
+    dateTo: null,
+    minEarnings: null,
+    maxEarnings: null,
+  });
 
   useEffect(() => {
-    // Show loading state when entries are being fetched
     setIsLoading(entries.length === 0);
   }, [entries]);
+
+  // Filter entries based on the current filters
+  const filteredEntries = entries.filter(entry => {
+    const entryDate = new Date(entry.start_time);
+    const earnings = entry.earnings_inr ?? 0;
+
+    // Date range filter
+    if (filters.dateFrom && filters.dateTo) {
+      const isInRange = isWithinInterval(entryDate, {
+        start: startOfDay(filters.dateFrom),
+        end: endOfDay(filters.dateTo)
+      });
+      if (!isInRange) return false;
+    } else if (filters.dateFrom) {
+      if (entryDate < startOfDay(filters.dateFrom)) return false;
+    } else if (filters.dateTo) {
+      if (entryDate > endOfDay(filters.dateTo)) return false;
+    }
+
+    // Earnings range filter
+    if (filters.minEarnings !== null && earnings < filters.minEarnings) return false;
+    if (filters.maxEarnings !== null && earnings > filters.maxEarnings) return false;
+
+    return true;
+  });
 
   const formatTime = (date: string) => {
     try {
@@ -47,7 +78,7 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
   };
 
   // Group entries by date
-  const groupedEntries = entries.reduce((acc, entry) => {
+  const groupedEntries = filteredEntries.reduce((acc, entry) => {
     try {
       const date = format(new Date(entry.start_time), 'yyyy-MM-dd');
       if (!acc[date]) {
@@ -98,6 +129,16 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
     toast.info(`Sorted by date ${newOrder === 'desc' ? 'newest first' : 'oldest first'}`);
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      dateFrom: null,
+      dateTo: null,
+      minEarnings: null,
+      maxEarnings: null,
+    });
+    toast.info("Filters cleared");
+  };
+
   return (
     <div className="w-full mt-10 font-['Inter'] animate-fade-in">
       <div className="mb-5 flex justify-between items-center">
@@ -119,6 +160,12 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
           </button>
         </div>
       </div>
+
+      <TimeEntryFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        onClearFilters={handleClearFilters}
+      />
       
       <div className="border rounded-lg dark:border-muted overflow-hidden bg-card dark:bg-card shadow-sm">
         {isLoading ? (
@@ -131,7 +178,7 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
               Loading history...
             </div>
           </div>
-        ) : entries.length === 0 ? (
+        ) : filteredEntries.length === 0 ? (
           <div className="flex justify-center items-center h-40">
             <div className="text-center">
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-40" />
