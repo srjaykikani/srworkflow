@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, StopCircle, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 
 const TimeToRupeeTracker: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [hourlyRate, setHourlyRate] = useState<number>(5);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [timerStatus, setTimerStatus] = useState<'idle' | 'running' | 'paused'>('idle');
@@ -258,9 +259,9 @@ const TimeToRupeeTracker: React.FC = () => {
         <div className="flex flex-col sm:flex-row justify-evenly p-7 bg-secondary/30 dark:bg-muted/10 gap-4">
           {timerStatus === 'idle' && (
             <Button 
-              variant="success"
+              variant="default"
               onClick={handleStart}
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
             >
               <Play size={18} />
               Start Tracking
@@ -270,9 +271,9 @@ const TimeToRupeeTracker: React.FC = () => {
           {timerStatus === 'running' && (
             <div className="flex w-full gap-4">
               <Button 
-                variant="warning"
+                variant="secondary"
                 onClick={handlePause}
-                className="flex-1 flex items-center justify-center gap-2"
+                className="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white"
               >
                 <Pause size={18} />
                 Pause
@@ -291,9 +292,9 @@ const TimeToRupeeTracker: React.FC = () => {
           {timerStatus === 'paused' && (
             <div className="flex w-full gap-4">
               <Button 
-                variant="success"
+                variant="default"
                 onClick={handlePause}
-                className="flex-1 flex items-center justify-center gap-2"
+                className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
               >
                 <Play size={18} />
                 Resume
