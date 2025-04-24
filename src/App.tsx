@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./hooks/useAuth";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
@@ -16,13 +17,36 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   if (!user) {
     return <Navigate to="/auth" />;
   }
 
+  return <>{children}</>;
+};
+
+// Auth route wrapper (redirects to home if already authenticated)
+const AuthRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  if (user) {
+    return <Navigate to="/" />;
+  }
+  
   return <>{children}</>;
 };
 
@@ -33,7 +57,14 @@ const App = () => (
       <Sonner position="bottom-right" closeButton richColors />
       <BrowserRouter>
         <Routes>
-          <Route path="/auth" element={<Auth />} />
+          <Route 
+            path="/auth" 
+            element={
+              <AuthRoute>
+                <Auth />
+              </AuthRoute>
+            } 
+          />
           <Route
             path="/"
             element={
