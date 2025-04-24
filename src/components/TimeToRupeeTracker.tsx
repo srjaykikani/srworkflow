@@ -1,12 +1,14 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Play, Pause, StopCircle, Calendar } from 'lucide-react';
+import { Play, Pause, StopCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ThemeToggle from './ThemeToggle';
 import HistoryTable from './HistoryTable';
 import { toast } from "@/components/ui/sonner";
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
 const TimeToRupeeTracker: React.FC = () => {
+  const { user } = useAuth();
   const [hourlyRate, setHourlyRate] = useState<number>(5);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [timerStatus, setTimerStatus] = useState<'idle' | 'running' | 'paused'>('idle');
@@ -95,6 +97,7 @@ const TimeToRupeeTracker: React.FC = () => {
         .insert({
           start_time: new Date(now).toISOString(),
           hourly_rate: hourlyRate,
+          user_id: user?.id
         })
         .select()
         .single();
@@ -183,15 +186,27 @@ const TimeToRupeeTracker: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success('Successfully logged out');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Failed to sign out');
+    }
+  };
+
   return (
     <div className="flex flex-col items-center w-full max-w-5xl mx-auto font-['Inter'] animate-fade-in">
       <div className="w-full bg-card dark:bg-card rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
-        {/* Header with improved spacing and alignment */}
         <div className="flex justify-between items-center py-6 px-8 bg-gradient-to-r from-background to-secondary/20 dark:from-background dark:to-secondary/5">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Time to Rupee Tracker
           </h1>
           <div className="flex items-center space-x-3">
+            <Button variant="ghost" onClick={handleLogout}>
+              Log Out
+            </Button>
             <ThemeToggle />
           </div>
         </div>

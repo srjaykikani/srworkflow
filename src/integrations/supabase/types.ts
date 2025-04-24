@@ -17,6 +17,7 @@ export type Database = {
           hourly_rate: number
           id: string
           start_time: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -25,6 +26,7 @@ export type Database = {
           hourly_rate: number
           id?: string
           start_time: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -33,6 +35,7 @@ export type Database = {
           hourly_rate?: number
           id?: string
           start_time?: string
+          user_id?: string | null
         }
         Relationships: []
       }
