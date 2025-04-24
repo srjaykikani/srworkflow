@@ -1,12 +1,11 @@
-# Welcome to your Lovable project
+
+# Freelancing Amount Tracker
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/07790054-93a2-419d-ba03-206605bf0b2c
+**URL**: https://time-to-rupee-tracker.lovable.app/
 
 ## How can I edit this code?
-
-There are several ways of editing your application.
 
 **Use Lovable**
 
