@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Play, Pause, StopCircle } from 'lucide-react';
+import { Play, Pause, StopCircle, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ThemeToggle from './ThemeToggle';
 import HistoryTable from './HistoryTable';
@@ -188,7 +188,7 @@ const TimeToRupeeTracker: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      await logout();
       toast.success('Successfully logged out');
     } catch (error) {
       console.error('Error signing out:', error);
@@ -204,13 +204,19 @@ const TimeToRupeeTracker: React.FC = () => {
             Time to Rupee Tracker
           </h1>
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" onClick={handleLogout}>
-              Log Out
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={handleLogout}
+              className="flex items-center gap-1"
+            >
+              <LogOut size={16} />
+              Logout
             </Button>
             <ThemeToggle />
           </div>
         </div>
-        
+
         {/* Timer Display with enhanced typography */}
         <div className="flex justify-center py-10 px-6 bg-gradient-to-b from-transparent to-secondary/10 dark:to-secondary/5">
           <div className="text-6xl font-bold text-foreground font-mono tracking-wider animate-pulse-slow">
@@ -248,46 +254,59 @@ const TimeToRupeeTracker: React.FC = () => {
           </div>
         </div>
         
-        {/* Controls with improved button styling and spacing */}
+        {/* Improved Timer Controls */}
         <div className="flex flex-col sm:flex-row justify-evenly p-7 bg-secondary/30 dark:bg-muted/10 gap-4">
           {timerStatus === 'idle' && (
-            <button 
+            <Button 
+              variant="success"
               onClick={handleStart}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-lg bg-gradient-to-r from-green-400 to-emerald-500 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-green-400/40"
+              className="w-full flex items-center justify-center gap-2"
             >
               <Play size={18} />
-              Start
-            </button>
+              Start Tracking
+            </Button>
           )}
           
           {timerStatus === 'running' && (
-            <button 
-              onClick={handlePause}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-amber-400/40"
-            >
-              <Pause size={18} />
-              Pause
-            </button>
+            <div className="flex w-full gap-4">
+              <Button 
+                variant="warning"
+                onClick={handlePause}
+                className="flex-1 flex items-center justify-center gap-2"
+              >
+                <Pause size={18} />
+                Pause
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleReset}
+                className="flex-1 flex items-center justify-center gap-2"
+              >
+                <StopCircle size={18} />
+                Stop
+              </Button>
+            </div>
           )}
           
           {timerStatus === 'paused' && (
-            <button 
-              onClick={handlePause}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-lg bg-gradient-to-r from-blue-400 to-sky-500 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-400/40"
-            >
-              <Play size={18} />
-              Resume
-            </button>
-          )}
-          
-          {timerStatus !== 'idle' && (
-            <button 
-              onClick={handleReset}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-lg bg-gradient-to-r from-red-400 to-pink-500 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-400/40"
-            >
-              <StopCircle size={18} />
-              Reset
-            </button>
+            <div className="flex w-full gap-4">
+              <Button 
+                variant="success"
+                onClick={handlePause}
+                className="flex-1 flex items-center justify-center gap-2"
+              >
+                <Play size={18} />
+                Resume
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleReset}
+                className="flex-1 flex items-center justify-center gap-2"
+              >
+                <StopCircle size={18} />
+                Stop
+              </Button>
+            </div>
           )}
         </div>
       </div>
