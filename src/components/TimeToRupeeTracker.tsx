@@ -1,189 +1,74 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Play, Pause, StopCircle, LogOut } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+
+import React, { useState, useEffect } from 'react';
+import { LogOut } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import HistoryTable from './HistoryTable';
 import { toast } from "@/components/ui/sonner";
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { useTimer } from '@/hooks/useTimer';
+import { useEarnings } from '@/hooks/useEarnings';
+import { useTimeEntries } from '@/hooks/useTimeEntries';
+import { formatTime } from '@/utils/timeFormat';
+import TimerControls from './TimerControls';
 
 const TimeToRupeeTracker: React.FC = () => {
   const { user, logout } = useAuth();
   const [hourlyRate, setHourlyRate] = useState<number>(5);
-  const [elapsedTime, setElapsedTime] = useState<number>(0);
-  const [timerStatus, setTimerStatus] = useState<'idle' | 'running' | 'paused'>('idle');
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [pausedTime, setPausedTime] = useState<number>(0);
-  const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
-  const [entries, setEntries] = useState<any[]>([]);
-
-  const USD_TO_INR_RATE = 85;
-
-  // Format the elapsed time to HH:MM:SS
-  const formattedTime = useMemo(() => {
-    const hours = Math.floor(elapsedTime / 3600);
-    const minutes = Math.floor((elapsedTime % 3600) / 60);
-    const seconds = Math.floor(elapsedTime % 60);
-    
-    // Add leading zeros if needed
-    const formattedHours = hours.toString().padStart(2, '0');
-    const formattedMinutes = minutes.toString().padStart(2, '0');
-    const formattedSeconds = seconds.toString().padStart(2, '0');
-    
-    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-  }, [elapsedTime]);
-
-  // Calculate earnings in INR
-  const earningsINR = useMemo(() => {
-    const hourlyRateINR = hourlyRate * USD_TO_INR_RATE;
-    const hours = elapsedTime / 3600;
-    return (hours * hourlyRateINR).toFixed(2);
-  }, [elapsedTime, hourlyRate]);
+  const { 
+    elapsedTime, 
+    timerStatus, 
+    startTimer, 
+    pauseTimer, 
+    resetTimer 
+  } = useTimer();
+  const { earningsINR } = useEarnings(elapsedTime, hourlyRate);
+  const {
+    entries,
+    currentEntryId,
+    fetchEntries,
+    createEntry,
+    updateEntry,
+    setCurrentEntryId
+  } = useTimeEntries(user?.id);
 
   useEffect(() => {
     fetchEntries();
-  }, []);
-
-  const fetchEntries = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('time_entries')
-        .select('*')
-        .order('start_time', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching entries:', error);
-        toast.error("Failed to load your time entries", {
-          description: "Please check your connection and try again"
-        });
-        return;
-      }
-      
-      setEntries(data || []);
-    } catch (err) {
-      console.error('Error in fetchEntries:', err);
-      toast.error("Something went wrong while loading entries");
-    }
-  };
-
-  useEffect(() => {
-    let intervalId: number | undefined;
-    
-    if (timerStatus === 'running') {
-      intervalId = window.setInterval(() => {
-        if (startTime) {
-          const currentTime = Date.now();
-          const newElapsedSeconds = pausedTime + (currentTime - startTime) / 1000;
-          setElapsedTime(newElapsedSeconds);
-        }
-      }, 100);
-    }
-    
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [timerStatus, startTime, pausedTime]);
+  }, [fetchEntries]);
 
   const handleStart = async () => {
-    try {
-      setTimerStatus('running');
-      const now = Date.now();
-      setStartTime(now);
-
-      const { data, error } = await supabase
-        .from('time_entries')
-        .insert({
-          start_time: new Date(now).toISOString(),
-          hourly_rate: hourlyRate,
-          user_id: user?.id
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating entry:', error);
-        toast.error("Failed to start timer", {
-          description: "Your session couldn't be saved. Please try again."
-        });
-        return;
-      }
-
-      setCurrentEntryId(data.id);
+    const entryId = await createEntry(hourlyRate);
+    if (entryId) {
+      startTimer();
       toast.success("Timer started", {
         description: `Tracking at $${hourlyRate}/hour`
       });
-    } catch (err) {
-      console.error('Error in handleStart:', err);
-      toast.error("Something went wrong when starting the timer");
     }
   };
-  
+
   const handlePause = async () => {
-    try {
-      if (timerStatus === 'running') {
-        setTimerStatus('paused');
-        setPausedTime(elapsedTime);
-        setStartTime(null);
-        toast.info("Timer paused", {
-          description: `Current time: ${formattedTime}`
-        });
-      } else if (timerStatus === 'paused') {
-        setTimerStatus('running');
-        setStartTime(Date.now());
-        toast.success("Timer resumed");
-      }
-    } catch (err) {
-      console.error('Error in handlePause:', err);
-      toast.error("Failed to update timer status");
+    pauseTimer();
+    if (timerStatus === 'running') {
+      toast.info("Timer paused", {
+        description: `Current time: ${formatTime(elapsedTime)}`
+      });
+    } else {
+      toast.success("Timer resumed");
     }
   };
-  
+
   const handleReset = async () => {
-    try {
-      if (currentEntryId) {
-        const { error } = await supabase
-          .from('time_entries')
-          .update({
-            end_time: new Date().toISOString(),
-            earnings_inr: parseFloat(earningsINR),
-          })
-          .eq('id', currentEntryId);
-
-        if (error) {
-          console.error('Error updating entry:', error);
-          toast.error("Failed to save your session", {
-            description: "Please try again or check your connection"
-          });
-          return;
-        }
-
+    if (currentEntryId) {
+      const success = await updateEntry(currentEntryId, earningsINR);
+      if (success) {
         toast.success("Session completed", {
-          description: `Earned ₹${earningsINR} in ${formattedTime}`
+          description: `Earned ₹${earningsINR} in ${formatTime(elapsedTime)}`
         });
         await fetchEntries();
       }
-
-      setTimerStatus('idle');
-      setElapsedTime(0);
-      setPausedTime(0);
-      setStartTime(null);
-      setCurrentEntryId(null);
-    } catch (err) {
-      console.error('Error in handleReset:', err);
-      toast.error("Something went wrong when stopping the timer");
     }
-  };
-
-  // Handle hourly rate input change
-  const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 0) {
-      setHourlyRate(value);
-    } else if (e.target.value === '') {
-      setHourlyRate(0);
-    }
+    resetTimer();
+    setCurrentEntryId(null);
   };
 
   const handleLogout = async () => {
@@ -193,6 +78,15 @@ const TimeToRupeeTracker: React.FC = () => {
     } catch (error) {
       console.error('Error signing out:', error);
       toast.error('Failed to sign out');
+    }
+  };
+
+  const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value) && value >= 0) {
+      setHourlyRate(value);
+    } else if (e.target.value === '') {
+      setHourlyRate(0);
     }
   };
 
@@ -231,14 +125,12 @@ const TimeToRupeeTracker: React.FC = () => {
           </div>
         </div>
 
-        {/* Timer Display with enhanced typography */}
         <div className="flex justify-center py-10 px-6 bg-gradient-to-b from-transparent to-secondary/10 dark:to-secondary/5">
           <div className="text-6xl font-bold text-foreground font-mono tracking-wider animate-pulse-slow">
-            {formattedTime}
+            {formatTime(elapsedTime)}
           </div>
         </div>
         
-        {/* Rate Input with improved spacing and visual feedback */}
         <div className="px-8 mb-8">
           <label htmlFor="hourlyRate" className="block text-sm text-muted-foreground mb-2 font-medium">
             Hourly Rate (USD)
@@ -254,7 +146,6 @@ const TimeToRupeeTracker: React.FC = () => {
           />
         </div>
         
-        {/* Earnings Display with enhanced card styling */}
         <div className="px-8 mb-8">
           <div className="card-gradient rounded-lg p-5 shadow-sm backdrop-blur-sm">
             <h2 className="text-sm text-muted-foreground mb-2 font-medium">Earnings</h2>
@@ -263,66 +154,17 @@ const TimeToRupeeTracker: React.FC = () => {
               <span className="ml-2 text-sm text-muted-foreground">INR</span>
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
-              @ ${hourlyRate}/hr = ₹{(hourlyRate * USD_TO_INR_RATE).toFixed(2)}/hr
+              @ ${hourlyRate}/hr = ₹{(hourlyRate * 85).toFixed(2)}/hr
             </div>
           </div>
         </div>
-        
-        {/* Improved Timer Controls */}
-        <div className="flex flex-col sm:flex-row justify-evenly p-7 bg-secondary/30 dark:bg-muted/10 gap-4">
-          {timerStatus === 'idle' && (
-            <Button 
-              variant="default"
-              onClick={handleStart}
-              className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
-            >
-              <Play size={18} />
-              Start Tracking
-            </Button>
-          )}
-          
-          {timerStatus === 'running' && (
-            <div className="flex w-full gap-4">
-              <Button 
-                variant="secondary"
-                onClick={handlePause}
-                className="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white"
-              >
-                <Pause size={18} />
-                Pause
-              </Button>
-              <Button 
-                variant="destructive"
-                onClick={handleReset}
-                className="flex-1 flex items-center justify-center gap-2"
-              >
-                <StopCircle size={18} />
-                Stop
-              </Button>
-            </div>
-          )}
-          
-          {timerStatus === 'paused' && (
-            <div className="flex w-full gap-4">
-              <Button 
-                variant="default"
-                onClick={handlePause}
-                className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
-              >
-                <Play size={18} />
-                Resume
-              </Button>
-              <Button 
-                variant="destructive"
-                onClick={handleReset}
-                className="flex-1 flex items-center justify-center gap-2"
-              >
-                <StopCircle size={18} />
-                Stop
-              </Button>
-            </div>
-          )}
-        </div>
+
+        <TimerControls 
+          timerStatus={timerStatus}
+          onStart={handleStart}
+          onPause={handlePause}
+          onReset={handleReset}
+        />
       </div>
       
       <HistoryTable entries={entries} />
