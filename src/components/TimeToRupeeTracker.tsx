@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, StopCircle, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -196,6 +195,20 @@ const TimeToRupeeTracker: React.FC = () => {
       toast.error('Failed to sign out');
     }
   };
+
+  // Add beforeunload event handler
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (timerStatus === 'running') {
+        e.preventDefault();
+        e.returnValue = 'You have an active timer running. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [timerStatus]);
 
   return (
     <div className="flex flex-col items-center w-full max-w-5xl mx-auto font-['Inter'] animate-fade-in">
