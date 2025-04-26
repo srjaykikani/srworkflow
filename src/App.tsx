@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,8 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./hooks/useAuth";
 import { useEffect } from "react";
+import Navbar from "./components/Navbar";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -56,25 +57,36 @@ const App = () => (
       <Toaster />
       <Sonner position="bottom-right" closeButton richColors />
       <BrowserRouter>
-        <Routes>
-          <Route 
-            path="/auth" 
-            element={
-              <AuthRoute>
-                <Auth />
-              </AuthRoute>
-            } 
-          />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <Routes>
+            <Route 
+              path="/auth" 
+              element={
+                <AuthRoute>
+                  <Auth />
+                </AuthRoute>
+              } 
+            />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

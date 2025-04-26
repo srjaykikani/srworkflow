@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ interface AuthFormProps {
 const AuthForm = ({ mode }: AuthFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [forgotPassword, setForgotPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
@@ -33,6 +33,11 @@ const AuthForm = ({ mode }: AuthFormProps) => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+          },
         });
         if (error) throw error;
         toast.success('Sign up successful! Please check your email to verify your account.');
@@ -98,6 +103,18 @@ const AuthForm = ({ mode }: AuthFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm">
+      {mode === 'signup' && (
+        <div>
+          <Input
+            type="text"
+            placeholder="Full Name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            className="w-full"
+          />
+        </div>
+      )}
       <div>
         <Input
           type="email"
