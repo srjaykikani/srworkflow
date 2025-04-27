@@ -36,9 +36,8 @@ const NavbarComponent = () => {
   ];
 
   return (
-    <div className="relative w-full">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border/40">
       <Navbar>
-        {/* Desktop Navigation */}
         <NavBody>
           <NavbarLogo />
           {user && (
@@ -53,7 +52,6 @@ const NavbarComponent = () => {
           )}
         </NavBody>
 
-        {/* Mobile Navigation */}
         <MobileNav>
           <MobileNavHeader>
             <NavbarLogo />
@@ -78,18 +76,6 @@ const NavbarComponent = () => {
                   <span className="block">{item.name}</span>
                 </a>
               ))}
-              <div className="flex w-full flex-col gap-4">
-                <NavbarButton
-                  onClick={() => {
-                    handleLogout();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  variant="primary"
-                  className="w-full"
-                >
-                  Logout
-                </NavbarButton>
-              </div>
             </MobileNavMenu>
           )}
         </MobileNav>

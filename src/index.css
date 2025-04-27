@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -20,19 +19,20 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     
-    --primary: 262 80% 50%;
-    --primary-foreground: 210 40% 98%;
+    /* Updated pastel color palette */
+    --primary: 210 80% 85%;
+    --primary-foreground: 210 40% 25%;
     
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 150 80% 90%;
+    --secondary-foreground: 150 40% 25%;
     
-    --accent: 262 80% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 340 80% 90%;
+    --accent-foreground: 340 40% 25%;
     
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     
-    --ring: 262 80% 50%;
+    --ring: 215 20.2% 65.1%;
     
     --radius: 0.75rem;
   }
@@ -53,14 +53,15 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     
-    --primary: 262 80% 60%;
-    --primary-foreground: 0 0% 100%;
+    /* Dark mode pastel adjustments */
+    --primary: 210 70% 30%;
+    --primary-foreground: 210 40% 98%;
     
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 150 70% 30%;
+    --secondary-foreground: 150 40% 98%;
     
-    --accent: 262 80% 70%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 340 70% 30%;
+    --accent-foreground: 340 40% 98%;
     
     --destructive: 0 62.8% 45%;
     --destructive-foreground: 210 40% 98%;
@@ -101,7 +102,7 @@
 
 @layer utilities {
   .card-gradient {
-    @apply bg-gradient-to-br from-card to-secondary/80 backdrop-blur-sm;
+    @apply bg-gradient-to-br from-card via-secondary/5 to-background backdrop-blur-sm;
   }
   
   .hover-scale {
