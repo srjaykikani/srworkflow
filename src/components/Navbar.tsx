@@ -25,7 +25,7 @@ const Navbar = () => {
       <div className="flex h-14 items-center px-4 gap-4">
         <div className="flex flex-1 items-center justify-between">
           <Button variant="link" onClick={() => navigate('/')}>
-            Time to Rupee Tracker
+            SR WorkFlow
           </Button>
           
           {user && (

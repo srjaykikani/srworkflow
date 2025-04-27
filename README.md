@@ -1,8 +1,8 @@
-# Freelancing Amount Tracker
+# SR WorkFlow
 
 ## Project info
 
-**URL**: https://time-to-rupee-tracker.lovable.app/
+**URL**: https://sr-workflow.lovable.app/
 
 ## How can I edit this code?
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { LogOut } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
@@ -109,7 +108,7 @@ const TimeToRupeeTracker: React.FC = () => {
       <div className="w-full bg-card dark:bg-card rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
         <div className="flex justify-between items-center py-6 px-8 bg-gradient-to-r from-background to-secondary/20 dark:from-background dark:to-secondary/5">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Time to Rupee Tracker
+            SR WorkFlow
           </h1>
           <div className="flex items-center space-x-3">
             <Button 
