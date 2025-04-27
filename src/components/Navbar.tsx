@@ -38,6 +38,7 @@ const NavbarComponent = () => {
   return (
     <div className="relative w-full">
       <Navbar>
+        {/* Desktop Navigation */}
         <NavBody>
           <NavbarLogo />
           {user && (
