@@ -76,6 +76,18 @@ const NavbarComponent = () => {
                   <span className="block">{item.name}</span>
                 </a>
               ))}
+              <div className="flex w-full flex-col gap-4">
+                <NavbarButton
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  Logout
+                </NavbarButton>
+              </div>
             </MobileNavMenu>
           )}
         </MobileNav>

@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect } from 'react';
-import { LogOut } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import HistoryTable from './HistoryTable';
 import { toast } from "@/components/ui/sonner";
@@ -12,7 +12,7 @@ import { formatTime } from '@/utils/timeFormat';
 import TimerControls from './TimerControls';
 
 const TimeToRupeeTracker: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [hourlyRate, setHourlyRate] = useState<number>(5);
   const { 
     elapsedTime, 
@@ -70,16 +70,6 @@ const TimeToRupeeTracker: React.FC = () => {
     setCurrentEntryId(null);
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success('Successfully logged out');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast.error('Failed to sign out');
-    }
-  };
-
   const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     if (!isNaN(value) && value >= 0) {
@@ -111,15 +101,6 @@ const TimeToRupeeTracker: React.FC = () => {
             SR WorkFlow
           </h1>
           <div className="flex items-center space-x-3">
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              onClick={handleLogout}
-              className="flex items-center gap-1"
-            >
-              <LogOut size={16} />
-              Logout
-            </Button>
             <ThemeToggle />
           </div>
         </div>
