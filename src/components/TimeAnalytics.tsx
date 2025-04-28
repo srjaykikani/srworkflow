@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useMemo } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, parseISO, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, parseISO, startOfWeek, endOfWeek } from "date-fns";
 import { 
   Bar, 
   BarChart, 
@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { CalendarIcon, Clock, IndianRupee } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
 interface TimeEntry {
   id: string;
@@ -65,10 +66,7 @@ const chartConfig = {
 
 export default function TimeAnalytics({ entries }: TimeAnalyticsProps) {
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
@@ -107,7 +105,7 @@ export default function TimeAnalytics({ entries }: TimeAnalyticsProps) {
       const dateStr = format(entryDate, 'yyyy-MM-dd');
       
       // Check if entry is within selected date range
-      if (isWithinInterval(entryDate, {
+      if (dateRange.from && dateRange.to && isWithinInterval(entryDate, {
         start: dateRange.from,
         end: dateRange.to
       })) {
@@ -168,6 +166,11 @@ export default function TimeAnalytics({ entries }: TimeAnalyticsProps) {
     return Object.values(dataByDate);
   }, [entries, dateRange, view]);
 
+  // Create a handler that will safely update the dateRange state
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+  };
+
   return (
     <div className="w-full mt-10 font-['Inter'] animate-fade-in space-y-6">
       <div className="mb-5 flex justify-between items-center">
@@ -178,7 +181,7 @@ export default function TimeAnalytics({ entries }: TimeAnalyticsProps) {
         <div className="flex gap-2">
           <DateRangePicker 
             value={dateRange} 
-            onValueChange={setDateRange} 
+            onValueChange={handleDateRangeChange} 
             align="end"
           />
         </div>
