@@ -3,9 +3,11 @@ import { format, isSameDay, parseISO, isWithinInterval, startOfDay, endOfDay } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/sonner";
-import { Calendar, ArrowUp, ArrowDown } from "lucide-react";
+import { Calendar, ArrowUp, ArrowDown, FileDown } from "lucide-react";
 import { TimeEntryFilters } from "./TimeEntryFilters";
 import type { TimeEntryFilters as Filters } from "./TimeEntryFilters";
+import { exportToCSV, exportToPDF } from "@/utils/exportUtils";
+import { Button } from "@/components/ui/button";
 
 interface TimeEntry {
   id: string;
@@ -58,6 +60,24 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
 
     return true;
   });
+
+  const handleExportCSV = () => {
+    if (filteredEntries.length === 0) {
+      toast.error("No entries to export");
+      return;
+    }
+    exportToCSV(filteredEntries);
+    toast.success("CSV file exported successfully");
+  };
+
+  const handleExportPDF = () => {
+    if (filteredEntries.length === 0) {
+      toast.error("No entries to export");
+      return;
+    }
+    exportToPDF(filteredEntries);
+    toast.success("PDF file exported successfully");
+  };
 
   const formatTime = (date: string) => {
     try {
@@ -147,6 +167,24 @@ const HistoryTable = ({ entries }: HistoryTableProps) => {
           History
         </h2>
         <div className="flex gap-2">
+          <Button
+            onClick={handleExportCSV}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <FileDown className="h-4 w-4" />
+            Export CSV
+          </Button>
+          <Button
+            onClick={handleExportPDF}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <FileDown className="h-4 w-4" />
+            Export PDF
+          </Button>
           <button
             onClick={handleSortOrderChange}
             className="px-3 py-1.5 rounded-md bg-secondary dark:bg-muted hover:bg-secondary/80 dark:hover:bg-muted/80 transition-colors flex items-center gap-1.5 text-sm font-medium"
