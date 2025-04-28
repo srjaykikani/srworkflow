@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import ThemeToggle from './ThemeToggle';
 import HistoryTable from './HistoryTable';
+import TimeAnalytics from './TimeAnalytics';
 import { toast } from "@/components/ui/sonner";
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -9,6 +11,7 @@ import { useEarnings } from '@/hooks/useEarnings';
 import { useTimeEntries } from '@/hooks/useTimeEntries';
 import { formatTime } from '@/utils/timeFormat';
 import TimerControls from './TimerControls';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const TimeToRupeeTracker: React.FC = () => {
   const { user } = useAuth();
@@ -29,6 +32,7 @@ const TimeToRupeeTracker: React.FC = () => {
     updateEntry,
     setCurrentEntryId
   } = useTimeEntries(user?.id);
+  const [activeTab, setActiveTab] = useState<string>("timer");
 
   useEffect(() => {
     fetchEntries();
@@ -104,49 +108,65 @@ const TimeToRupeeTracker: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex justify-center py-10 px-6 bg-gradient-to-b from-transparent to-secondary/10 dark:to-secondary/5">
-          <div className="text-6xl font-bold text-foreground font-mono tracking-wider animate-pulse-slow">
-            {formatTime(elapsedTime)}
-          </div>
-        </div>
-        
-        <div className="px-8 mb-8">
-          <label htmlFor="hourlyRate" className="block text-sm text-muted-foreground mb-2 font-medium">
-            Hourly Rate (USD)
-          </label>
-          <input
-            id="hourlyRate"
-            type="number"
-            min="0"
-            step="0.01"
-            value={hourlyRate}
-            onChange={handleRateChange}
-            className="w-full px-4 py-3 rounded-lg bg-secondary/50 dark:bg-muted border border-input dark:border-muted focus:border-primary dark:focus:border-accent focus:ring focus:ring-primary/20 dark:focus:ring-accent/20 transition duration-200 text-foreground"
-          />
-        </div>
-        
-        <div className="px-8 mb-8">
-          <div className="card-gradient rounded-lg p-5 shadow-sm backdrop-blur-sm">
-            <h2 className="text-sm text-muted-foreground mb-2 font-medium">Earnings</h2>
-            <div className="flex items-baseline">
-              <span className="text-4xl font-bold text-green-600 dark:text-green-400">₹{earningsINR}</span>
-              <span className="ml-2 text-sm text-muted-foreground">INR</span>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 rounded-none border-b">
+            <TabsTrigger value="timer">Timer</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="timer" className="w-full">
+            <div className="flex justify-center py-10 px-6 bg-gradient-to-b from-transparent to-secondary/10 dark:to-secondary/5">
+              <div className="text-6xl font-bold text-foreground font-mono tracking-wider animate-pulse-slow">
+                {formatTime(elapsedTime)}
+              </div>
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">
-              @ ${hourlyRate}/hr = ₹{(hourlyRate * 85).toFixed(2)}/hr
+            
+            <div className="px-8 mb-8">
+              <label htmlFor="hourlyRate" className="block text-sm text-muted-foreground mb-2 font-medium">
+                Hourly Rate (USD)
+              </label>
+              <input
+                id="hourlyRate"
+                type="number"
+                min="0"
+                step="0.01"
+                value={hourlyRate}
+                onChange={handleRateChange}
+                className="w-full px-4 py-3 rounded-lg bg-secondary/50 dark:bg-muted border border-input dark:border-muted focus:border-primary dark:focus:border-accent focus:ring focus:ring-primary/20 dark:focus:ring-accent/20 transition duration-200 text-foreground"
+              />
             </div>
-          </div>
-        </div>
+            
+            <div className="px-8 mb-8">
+              <div className="card-gradient rounded-lg p-5 shadow-sm backdrop-blur-sm">
+                <h2 className="text-sm text-muted-foreground mb-2 font-medium">Earnings</h2>
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-bold text-green-600 dark:text-green-400">₹{earningsINR}</span>
+                  <span className="ml-2 text-sm text-muted-foreground">INR</span>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  @ ${hourlyRate}/hr = ₹{(hourlyRate * 85).toFixed(2)}/hr
+                </div>
+              </div>
+            </div>
 
-        <TimerControls 
-          timerStatus={timerStatus}
-          onStart={handleStart}
-          onPause={handlePause}
-          onReset={handleReset}
-        />
+            <TimerControls 
+              timerStatus={timerStatus}
+              onStart={handleStart}
+              onPause={handlePause}
+              onReset={handleReset}
+            />
+          </TabsContent>
+          
+          <TabsContent value="history" className="w-full p-0">
+            <HistoryTable entries={entries} />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="w-full p-0">
+            <TimeAnalytics entries={entries} />
+          </TabsContent>
+        </Tabs>
       </div>
-      
-      <HistoryTable entries={entries} />
     </div>
   );
 };
