@@ -16,7 +16,7 @@ const TimerControls = ({ timerStatus, onStart, onPause, onReset }: TimerControls
         <Button 
           variant="default"
           onClick={onStart}
-          className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
+          className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
         >
           <Play size={18} />
           Start Tracking
@@ -28,7 +28,7 @@ const TimerControls = ({ timerStatus, onStart, onPause, onReset }: TimerControls
           <Button 
             variant="secondary"
             onClick={onPause}
-            className="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+            className="flex-1 flex items-center justify-center gap-2"
           >
             <Pause size={18} />
             Pause
@@ -49,7 +49,7 @@ const TimerControls = ({ timerStatus, onStart, onPause, onReset }: TimerControls
           <Button 
             variant="default"
             onClick={onPause}
-            className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
+            className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
           >
             <Play size={18} />
             Resume
