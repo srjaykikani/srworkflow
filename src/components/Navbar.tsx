@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import ThemeToggle from './ThemeToggle';
+import { AuroraText } from '@/components/ui/aurora-text';
 import {
   Navbar,
   NavBody,
@@ -39,12 +41,22 @@ const NavbarComponent = () => {
     <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border/40">
       <Navbar>
         <NavBody>
-          <NavbarLogo />
+          <NavbarLogo>
+            <span className="text-2xl font-bold">
+              <AuroraText 
+                colors={["#9b87f5", "#7E69AB", "#6E59A5", "#D946EF"]}
+                speed={0.8}
+              >
+                SR WorkFlow
+              </AuroraText>
+            </span>
+          </NavbarLogo>
           {user && (
             <>
               <NavItems items={navItems} />
               <div className="flex items-center gap-4">
-                <NavbarButton variant="secondary" onClick={handleLogout}>
+                <ThemeToggle />
+                <NavbarButton variant="dark" onClick={handleLogout}>
                   Logout
                 </NavbarButton>
               </div>
@@ -54,11 +66,23 @@ const NavbarComponent = () => {
 
         <MobileNav>
           <MobileNavHeader>
-            <NavbarLogo />
-            <MobileNavToggle
-              isOpen={isMobileMenuOpen}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            />
+            <NavbarLogo>
+              <span className="text-xl font-bold">
+                <AuroraText 
+                  colors={["#9b87f5", "#7E69AB", "#6E59A5", "#D946EF"]}
+                  speed={0.8}
+                >
+                  SR WorkFlow
+                </AuroraText>
+              </span>
+            </NavbarLogo>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <MobileNavToggle
+                isOpen={isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              />
+            </div>
           </MobileNavHeader>
 
           {user && (
