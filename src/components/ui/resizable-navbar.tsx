@@ -1,4 +1,3 @@
-
 "use client";
 import { cn } from "@/lib/utils";
 import { Menu, X } from 'lucide-react';
@@ -228,15 +227,18 @@ export const MobileNavToggle = ({
   );
 };
 
-export const NavbarLogo = () => {
+// Modified NavbarLogo to accept children props
+export const NavbarLogo = ({ children }: { children?: React.ReactNode }) => {
   return (
     <a
       href="/"
       className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal"
     >
-      <span className="text-lg font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-        SR WorkFlow
-      </span>
+      {children || (
+        <span className="text-lg font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          SR WorkFlow
+        </span>
+      )}
     </a>
   );
 };
