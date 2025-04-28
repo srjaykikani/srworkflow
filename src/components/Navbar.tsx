@@ -82,7 +82,7 @@ const NavbarComponent = () => {
                     handleLogout();
                     setIsMobileMenuOpen(false);
                   }}
-                  variant="destructive"
+                  variant="dark"
                   className="w-full"
                 >
                   Logout
